@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntuitiveMenus", "IntuitiveMenus\IntuitiveMenus.csproj", "{C458F424-CF9B-48DA-AA58-686E50FA4727}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Release", "Release", "{67D36514-23A4-4F78-A631-FC69F3E5D529}"
+	ProjectSection(SolutionItems) = preProject
+		Release\README.txt = Release\README.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A35879EF-6330-48AC-9308-75E943E9E730}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README = README
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OPTIONAL", "OPTIONAL", "{2F39B535-D07E-4C7E-8961-B1D15F01601A}"
+	ProjectSection(SolutionItems) = preProject
+		Release\OPTIONAL\coordinates.json_example.txt = Release\OPTIONAL\coordinates.json_example.txt
+		Release\OPTIONAL\loadouts.json_example.txt = Release\OPTIONAL\loadouts.json_example.txt
+		Release\OPTIONAL\pedmodels.json = Release\OPTIONAL\pedmodels.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C458F424-CF9B-48DA-AA58-686E50FA4727}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C458F424-CF9B-48DA-AA58-686E50FA4727}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C458F424-CF9B-48DA-AA58-686E50FA4727}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C458F424-CF9B-48DA-AA58-686E50FA4727}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2F39B535-D07E-4C7E-8961-B1D15F01601A} = {67D36514-23A4-4F78-A631-FC69F3E5D529}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FDFAD5AD-2E47-4009-A100-40046A6122E4}
+	EndGlobalSection
+EndGlobal
