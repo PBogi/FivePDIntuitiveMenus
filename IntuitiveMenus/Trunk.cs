@@ -161,7 +161,7 @@ namespace IntuitiveMenus
                     // Give the weapon to the player
                     Tuple<bool, List<Weapon>> _ItemData = _item.ItemData;
 
-                    if (_ItemData.Item1 == true)
+                    if (_ItemData.Item1)
                     {
                         foreach (Weapon _Weapon in _ItemData.Item2)
                         {
@@ -179,6 +179,7 @@ namespace IntuitiveMenus
                             }
                         }
                         _item.Text = _item.Text.Replace("Take", "Put back");
+
                     }
                     else
                     {

@@ -244,6 +244,7 @@ namespace IntuitiveMenus
                     Weapons = new List<Weapon> { new Weapon
                         {
                             Model = "WEAPON_FIREEXTINGUISHER",
+                            Components = new string[] { },
                             Ammo = 1000
                         }
                     }
@@ -258,6 +259,7 @@ namespace IntuitiveMenus
                     Weapons = new List<Weapon> { new Weapon
                         {
                             Model = "WEAPON_CARBINERIFLE",
+                            Components = new string[] { },
                             Ammo = 250
                         }
                     }
@@ -272,6 +274,7 @@ namespace IntuitiveMenus
                     Weapons = new List<Weapon> { new Weapon
                         {
                             Model = "WEAPON_PUMPSHOTGUN",
+                            Components = new string[] { },
                             Ammo = 250
                         }
                     }
