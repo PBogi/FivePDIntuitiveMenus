@@ -146,11 +146,9 @@ namespace IntuitiveMenus
                 // Check if custom locker locations are available
                 if (_Coordinates["lockers"] != null)
                 {
-                    var lockerLocations = _Coordinates["lockers"].Values<string>().ToArray();
-
-                    foreach (var lockerLocation in lockerLocations)
+                    foreach (var lockerLocation in _Coordinates["lockers"])
                     {
-                        string[] location = lockerLocation.Split(',');
+                        string[] location = ((string)lockerLocation).Split(',');
                         float.TryParse(location[0], out float locationX);
                         float.TryParse(location[1], out float locationY);
                         float.TryParse(location[2], out float locationZ);
@@ -174,14 +172,13 @@ namespace IntuitiveMenus
                     };
                 }
 
-
                 // Check if custom garage locations are available
                 if (_Coordinates["garages"] != null)
                 {
                     foreach (var garageLocation in _Coordinates["garages"])
                     {
-                        string[] spawnLocation = garageLocation["spawn"].ToString().Split(',');
-                        string[] interactionLocation = garageLocation["interaction"].ToString().Split(',');
+                        string[] spawnLocation = ((string)garageLocation["spawn"]).Split(',');
+                        string[] interactionLocation = ((string)garageLocation["interaction"]).Split(',');
 
                         float.TryParse(spawnLocation[0], out float spawnLocationX);
                         float.TryParse(spawnLocation[1], out float spawnLocationY);
