@@ -41,7 +41,7 @@ namespace IntuitiveMenus
                 Menu menu_SelectVehicle = new Menu("Select Vehicle");
                 Menu menu_Extras = new Menu("Select Extras");
 
-
+                // Do all the dynamic stuff in "OnMenuOpen" so it runs again when player returns from submenu
                 menu.OnMenuOpen += (_menu) =>
                 {
                     Common.IsMenuOpen = true;
@@ -56,10 +56,11 @@ namespace IntuitiveMenus
                     MenuController.AddSubmenu(menu, menu_SelectVehicle);
                     MenuController.BindMenuItem(menu, menu_SelectVehicle, menuButton_SelectVehicle);
 
-
+                    // Check if any object is blocking the spawn area. Currently only 1 raycast across the area. Enough? Probably.
                     rayHandle = CastRayPointToPoint(SpawnLocations[locationIndex].X - 2, SpawnLocations[locationIndex].Y - 2, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].X + 2, SpawnLocations[locationIndex].Y + 3, SpawnLocations[locationIndex].Z + 1, -1, 0, 0);
                     GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref _entityHit);
 
+                    // Check if the vehicle currently in the spawn area has liveries and add them to the menu
                     List<string> menuList_Liveries = new List<string>() { };
                     menuListItem_Liveries = new MenuListItem("Livery", menuList_Liveries, 0);
 
@@ -80,6 +81,7 @@ namespace IntuitiveMenus
                     menu.AddMenuItem(menuListItem_Liveries);
 
 
+                    // Check if the entity in the spawn area is a vehicle and add color options to the menu
                     List<string> menuList_Colors = new List<string>() { };
                     menuListItem_Colors = new MenuListItem("Color", menuList_Colors, 0);
                     if (!_Hit || GetEntityType(_entityHit) != 2)
@@ -102,6 +104,8 @@ namespace IntuitiveMenus
                     }
                     menu.AddMenuItem(menuListItem_Colors);
 
+
+                    // Check if the vehicle in the spawn area has extras and show the menu button
                     menuButton_Extras = new MenuItem("Extras")
                     {
                         Label = "→→→"
@@ -120,7 +124,7 @@ namespace IntuitiveMenus
                     }
                     menu.AddMenuItem(menuButton_Extras);
 
-
+                    // Check if the entity in the spawn area is a vehicle and show the delete button
                     menuItem_DeleteVehicle = new MenuItem("Delete vehicle");
                     menu.AddMenuItem(menuItem_DeleteVehicle);
 
@@ -136,6 +140,7 @@ namespace IntuitiveMenus
                     }
                 };
 
+                // Select Vehicle Submenu
                 menu_SelectVehicle.OnMenuOpen += (_menu) =>
                 {
                     Common.IsMenuOpen = true;
@@ -182,6 +187,7 @@ namespace IntuitiveMenus
 
                     menu_Extras.ClearMenuItems();
 
+                    // Max extras in GTA V is 14
                     for(int i=1;i<=14;i++)
                     {
                         if (DoesExtraExist(_entityHit, i))
@@ -200,7 +206,7 @@ namespace IntuitiveMenus
                 {
                     if(_item == menuItem_DeleteVehicle)
                     {
-                        SetEntityAsMissionEntity(_entityHit, true, true);
+                        SetEntityAsMissionEntity(_entityHit, true, true); // Can only delete vehicle if it is a mission entity!
                         DeleteVehicle(ref _entityHit);
                         _item.Enabled = false;
                         _item.Description = "Vehicle deleted";
@@ -215,6 +221,8 @@ namespace IntuitiveMenus
 
                 menu_SelectVehicle.OnItemSelect += (_menu, _item, _index) =>
                 {
+                    // Delete previously spawned vehicle first
+                    // TODO: Maybe do this only if the vehicle is still in the spawn area, so one player can spawn multiple vehicles (for other players)
                     if (SpawnedVehicle > 0) DeleteVehicle(ref SpawnedVehicle);
 
                     // Check again if something is blocking
@@ -281,6 +289,9 @@ namespace IntuitiveMenus
             }
         }
 
+        // Async task to spawn the vehicle, so the menu thread is not blocked during loading
+        // Make sure to wait for the vehicle to be in the memory. Long timeout (maxretries) here as a addon vehicle download might take a while
+        // But it should eventually time out if vehicle cannot be loaded at all
         internal async Task SpawnVehicle(int locationIndex, string name)
         {
             uint vehicle = (uint)GetHashKey(name);
@@ -305,7 +316,8 @@ namespace IntuitiveMenus
             }
         }
 
-
+        // Small color selection. Those are the most used ones I guess?!
+        // Probably no need for a big selection here.
         internal Dictionary<string, int> Colors = new Dictionary<string, int>
         {
             { "Default", 0 },
@@ -319,30 +331,5 @@ namespace IntuitiveMenus
 
         internal List<Vector3> Locations = new List<Vector3>();
         internal List<Vector4> SpawnLocations = new List<Vector4>();
-        /*internal List<Vector3> Locations = new List<Vector3>
-        {
-            new Vector3(-1112.62f,-848.44f,12.46f), // Vespucci
-            new Vector3(-582.19f,-149.31f,37.24f), // Rockford Hills
-            new Vector3(409.46f,-976.54f,28.44f), // Mission Row
-            new Vector3(388f,-1607.84f,28.3f), // Davis Sheriff
-            new Vector3(631.64f,23.31f,86.37f), // Vinewood
-            new Vector3(836.98f,-1258.4f,25.38f), // La Mesa
-            new Vector3(1859.04f,3681.91f,32.84f), // SandyShores
-            new Vector3(-484.9f,6022.32f,30.35f), // Paleto Bay
-            new Vector3(376.35f,793.06f,186.5f) // Beaver Bush
-        };
-
-        internal List<Vector4> SpawnLocations = new List<Vector4>
-        {
-            new Vector4(-1122.37f, -844.42f, 12.41f, 133.68f), // Vespucci
-            new Vector4(-583.03f,-156.17f,36.93f,112.8f), // Rockford Hills
-            new Vector4(407.83f,-979.45f,28.27f,50.68f), // Mission Row
-            new Vector4(391.16f,-1610.71f,28.29f,230.55f), // Davis Sheriff
-            new Vector4(627.48f,24.91f,86.58f,196.58f), // Vinewood
-            new Vector4(833.35f,-1258.09f,25.34f,180.19f), // La Mesa
-            new Vector4(1862.99f,3679.03f,32.65f,210.55f), // SandyShores
-            new Vector4(-482.53f,6024.86f,30.34f,223.38f), // Paleto Bay
-            new Vector4(374.02f,796.69f,186.29f,178.88f) // Beaver Bush
-        };*/
     }
 }

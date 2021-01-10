@@ -23,6 +23,7 @@ namespace IntuitiveMenus
 
         internal async Task Initialize()
         {
+            // Check if player is allowed to use FivePD at all
             // Todo: Check regularily
             TriggerServerEvent("FivePD::Allowlist::IsPlayerAllowed", new Action<bool>(allowed =>
             {
@@ -37,16 +38,11 @@ namespace IntuitiveMenus
                     _ = CreateBlips();
                 }
             }));
-
-            /*while (!Common.IsAllowed)
-            {
-                // Wait until allowed
-                await BaseScript.Delay(1000);
-            }*/
         }
 
         internal async Task LoadConfigs()
         {
+            // Try to load FivePD config files
             try
             {
                 Common.Loadouts = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/loadouts.json"));
@@ -75,6 +71,7 @@ namespace IntuitiveMenus
                 Debug.WriteLine("Loading default loadouts for trunk");
             }
 
+            // Add default loadouts
             if(!trunk.Loadouts.HasValues)
             {
                 trunk.Loadouts.Add(new JProperty("Fire Extinguisher", JObject.Parse(@"{
@@ -245,8 +242,7 @@ namespace IntuitiveMenus
 
         internal async Task CreateBlips()
         {
-            // Create Blips
-            //foreach (Vector3 garageLocation in garage.Locations)
+            // Create Blips for garages and lockers
             foreach (var garageLocation in garage.Locations)
             {
                 int garageBlip = AddBlipForCoord(garageLocation.X, garageLocation.Y, garageLocation.Z);
@@ -264,7 +260,7 @@ namespace IntuitiveMenus
             }
         }
 
-
+        // Show helptext if player is near a locker and react on button press
         internal async Task IsPlayerNearLocker()
         {
             foreach (Vector3 lockerLocation in locker.Locations)
@@ -284,10 +280,11 @@ namespace IntuitiveMenus
                 }
             }
         }
+
+        // Show helptext and markers if player is near a garage and react on button press
         internal async Task IsPlayerNearGarage()
         {
             for(int i=0; i < garage.Locations.Count; i++)
-            //foreach (Vector3 garageLocation in garage.Locations)
             {
                 float currentDistanceToGarage = Game.PlayerPed.Position.DistanceTo(garage.Locations[i]);
 
@@ -304,14 +301,14 @@ namespace IntuitiveMenus
 
                         if (Game.IsControlJustReleased(1, Control.Context))
                         {
-                            garage.ShowMenu(i);
+                            garage.ShowMenu(i); // Call the method with the index of the garage to find the appropriate spawn location
                         }
                     }
                 }
             }
         }
 
-
+        // React on button press
         internal async Task CheckButtonPressed()
         {
             if (Game.IsControlJustReleased(1, Control.Context))

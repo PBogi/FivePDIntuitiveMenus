@@ -19,21 +19,23 @@ namespace IntuitiveMenus
         {
             float triggerDistance = 2.0f;
 
+            // Find entities in front of player
             Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
             int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
             bool _Hit = false;
             Vector3 _endCoords = new Vector3();
             Vector3 _surfaceNormal = new Vector3();
             
-
             GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
 
+            // Check if the entity hit is an emergency vehicle (class 18)
             if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
             {
-                
+                // Find the trunk bone from the vehicle and check if it's within the trigger distance
                 Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
                 if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
                 {
+                    // Request the animation dictionary and wait for it to be loaded
                     RequestAnimDict(AnimDict);
 
                     int maxretries = 0;
@@ -43,6 +45,7 @@ namespace IntuitiveMenus
                         maxretries++;
                     }
 
+                    // Check if the trunk is open or closed and act accordingly
                     if (GetVehicleDoorAngleRatio(vehicleHandle, 5) > 0)
                     {
                         SetVehicleDoorShut(vehicleHandle, 5, false);
@@ -96,6 +99,8 @@ namespace IntuitiveMenus
 
             List<string> menuList_Loadouts = new List<string>() { };
 
+            // Check which loadouts are available for the player in the trunk and create the menu buttons for it
+            // Todo: Get rid of parsing json here and create custom objects
             foreach (var Loadout in Loadouts)
             {
                 if ((bool)Loadout.Value["isAvailableForEveryone"])
@@ -137,6 +142,8 @@ namespace IntuitiveMenus
 
             menu.OnItemSelect += (_menu, _item, _index) =>
             {
+                // Give the weapon to the player
+                // Todo: Maybe find a more elegant way instead of checking the button text?
                 if (_item.Text.StartsWith("Take"))
                 {
                     foreach (var weapon in Loadouts[_item.Text.Replace("Take ", "")]["weapons"])
@@ -159,6 +166,7 @@ namespace IntuitiveMenus
                     }
                     _item.Text = _item.Text.Replace("Take", "Put back");
                 }
+                // Remove the weapon from the player
                 else if (_item.Text.StartsWith("Put back"))
                 {
                     foreach (var weapon in Loadouts[_item.Text.Replace("Put back ", "")]["weapons"])
@@ -168,46 +176,9 @@ namespace IntuitiveMenus
                         _item.Text = _item.Text.Replace("Put back", "Take");
                     }
                 }
-
-                /*
-
-                if (_item == menuButton_Shotgun)
-                {
-                    ammo = 250;
-                    weaponHash = (uint)GetHashKey("WEAPON_PUMPSHOTGUN");
-                }
-                else if(_item == menuButton_Rifle)
-                {
-                    ammo = 250;
-                    weaponHash = (uint)GetHashKey("WEAPON_CARBINERIFLE");
-                }
-                else if(_item == menuButton_FireExt)
-                {
-                    ammo = 1000;
-                    weaponHash = (uint)GetHashKey("WEAPON_FIREEXTINGUISHER");
-                }
-                else
-                {
-                    ammo = 250;
-                    weaponHash = (uint)GetHashKey("WEAPON_PISTOL");
-                }
-
-                if (_item.Text.StartsWith("Take"))
-                {
-                    GiveWeaponToPed(PlayerPedId(), weaponHash, ammo, false, true);
-                        SetAmmoInClip(PlayerPedId(), weaponHash, ammo);
-                        //SetPedInfiniteAmmo(PlayerPedId(), true, weaponHash);
-                        // TODO: More ammo
-                    
-                    _item.Text = _item.Text.Replace("Take", "Put back");
-                }
-                else if (_item.Text.StartsWith("Put back"))
-                {
-                    RemoveWeaponFromPed(PlayerPedId(), weaponHash);
-                    _item.Text = _item.Text.Replace("Put back", "Take");
-                }*/
             };
 
+            // Stop animation and close the trunk when player exits vehicle
             menu.OnMenuClose += (_menu) =>
             {
                 StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);

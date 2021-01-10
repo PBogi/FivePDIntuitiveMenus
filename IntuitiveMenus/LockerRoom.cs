@@ -67,13 +67,6 @@ namespace IntuitiveMenus
 
                     menuListItem_PedModels = new MenuListItem("Change outfit", menuList_PedModels, 0);
                     menu.AddMenuItem(menuListItem_PedModels);
-
-                    // Todo: Modelchanger
-                    // void SetPlayerModel(Player player, uint model);
-                    //RequestModel((uint)GetHashKey("csb_cop"));
-                    //SetPlayerModel(PlayerId(), (uint)GetHashKey("csb_cop"));
-                    //Common.DisplayNotification("Currently only EUP supported. If EUP is installed, create a multiplayer character first!");
-
                 }
 
                 List<string> menuList_Loadouts = new List<string>() { };
@@ -123,13 +116,6 @@ namespace IntuitiveMenus
                     Enabled = true
                 });
 
-
-                /*Menu menu_ChangeOutfit = new Menu("Change outfit");
-                MenuController.AddSubmenu(menu, menu_ChangeOutfit);
-                MenuController.BindMenuItem(menu, menu_ChangeOutfit, menuButton_ChangeOutfit);
-
-                MenuListItem outfitmenuListItem_Department = new MenuListItem("Department", menuList_Loadouts, 0);
-                menu_ChangeOutfit.AddMenuItem(outfitmenuListItem_Department);*/
 
                 menu.OnItemSelect += (_menu, _item, _index) =>
                 {
@@ -210,6 +196,9 @@ namespace IntuitiveMenus
             }
         }
 
+        // Async task to spawn the ped, so the menu thread is not blocked during loading
+        // Make sure to wait for the ped to be in the memory. Custom peds may take a while to download, so the timeout (maxretries) is a bit longer
+        // But it should eventually time out if ped cannot be loaded at all
         internal async Task ChangePlayerPed(string name)
         {
             uint model = (uint)GetHashKey(name);
@@ -238,18 +227,6 @@ namespace IntuitiveMenus
 
         internal List<Vector3> Locations = new List<Vector3>();
         internal JObject PedModels = new JObject();
-        /*internal List<Vector3> Locations = new List<Vector3>
-        {
-            new Vector3(-1092.86f,-809.93f,19.28f), // Vespucci
-            new Vector3(-561.87f,-131.06f,38.43f), // Rockford Hills
-            new Vector3(449.93f,-993.16f,30.69f), // Mission Row
-            new Vector3(361.08f,-1584.79f,29.29f), // Davis Sheriff
-            new Vector3(619.72f,17f,87.82f), // Vinewood
-            new Vector3(827.45f,-1290.13f,28.24f), // La Mesa
-            new Vector3(1848.47f,3690.32f,34.27f), // SandyShores
-            new Vector3(-448.39f,6007.92f,31.72f), // Paleto Bay
-            new Vector3(387.07f,792.57f,187.69f) // Beaver Bush
-        };*/
     }
     
 
