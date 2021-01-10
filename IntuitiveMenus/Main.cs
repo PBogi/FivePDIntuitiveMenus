@@ -50,7 +50,6 @@ namespace IntuitiveMenus
             try
             {
                 Common.Loadouts = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/loadouts.json"));
-                Common.SceneManagement = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/scene_management.json"));
                 Common.Vehicles = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/vehicles.json"));
                 Common.Coordinates = JObject.Parse(LoadResourceFile(GetCurrentResourceName(), "config/coordinates.json"));
             }

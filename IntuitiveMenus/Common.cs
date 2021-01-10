@@ -9,7 +9,6 @@ namespace IntuitiveMenus
     {
         internal static bool IsMenuOpen { get; set; } = false;
         internal static JObject Loadouts = new JObject();
-        internal static JObject SceneManagement = new JObject();
         internal static JObject Vehicles = new JObject();
         internal static JObject Coordinates = new JObject();
         internal static bool IsAllowed = false;
