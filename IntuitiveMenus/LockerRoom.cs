@@ -18,162 +18,126 @@ namespace IntuitiveMenus
 
         internal void ShowMenu()
         {
-            //TODO: Clean code
             PlayerData playerData = Utilities.GetPlayerData();
+            bool _isPlayerOnDuty = Utilities.IsPlayerOnDuty();
 
             try
             {
                 menu = new Menu("Locker Room");
                 MenuController.AddMenu(menu);
-                MenuItem menuButton_ChangeOutfit = new MenuItem("Change outfit");
-                MenuListItem menuListItem_PedModels = new MenuListItem("Change outfit", null, 0);
-                List<string> menuList_PedModels = new List<string>() { };
+
+
+                MenuItem menuItem_ChangeOutfit = new MenuItem("Change outfit");
+                MenuListItem menuListItem_PedModels = new MenuListItem("Change outfit", new List<string>(), 0);
 
                 if (GetResourceState("eup-ui") == "started")
                 {
-                    menuButton_ChangeOutfit = new MenuItem("Change outfit")
+                    menuItem_ChangeOutfit = new MenuItem("Change outfit")
                     {
                         Label = "→→→"
                     };
-                    menu.AddMenuItem(menuButton_ChangeOutfit);
+                    menu.AddMenuItem(menuItem_ChangeOutfit);
                 }
                 else
                 {
-                    menuList_PedModels = new List<string>() { };
-
-                    foreach (var PedModel in PedModels)
+                    menuListItem_PedModels.ItemData = new List<string>();
+                    
+                    foreach (PedModel _PedModel in PedModels)
                     {
-                        if ((bool)PedModel.Value["isAvailableForEveryone"])
+                        if (_PedModel.IsAvailableForEveryone
+                            || ((!_PedModel.UseRanks || _PedModel.AvailableForRanks.Contains(playerData.Rank))
+                                && (_PedModel.AvailableForDepartments.Count == 0 || _PedModel.AvailableForDepartments.Contains(playerData.DepartmentID))))
                         {
-                            menuList_PedModels.Add(PedModel.Key.ToString());
-                        }
-                        else if ((bool)PedModel.Value["useRanks"])
-                        {
-                            string[] availableForRanks = PedModel.Value["availableForRanks"].Values<string>().ToArray();
-                            if (availableForRanks.Contains(playerData.Rank))
-                            {
-                                menuList_PedModels.Add(PedModel.Key.ToString());
-                            }
-                        }
-                        else if (PedModel.Value["availableForDepartments"] != null)
-                        {
-                            int[] availableForDepartments = PedModel.Value["availableForDepartments"].Values<int>().ToArray();
-                            if (availableForDepartments.Contains(playerData.DepartmentID))
-                            {
-                                menuList_PedModels.Add(PedModel.Key.ToString());
-                            }
+                            menuListItem_PedModels.ListItems.Add(_PedModel.Name);
+                            menuListItem_PedModels.ItemData.Add(_PedModel.Model); 
                         }
                     }
 
-                    menuListItem_PedModels = new MenuListItem("Change outfit", menuList_PedModels, 0);
                     menu.AddMenuItem(menuListItem_PedModels);
                 }
 
-                List<string> menuList_Loadouts = new List<string>() { };
-                foreach (var Loadout in Common.Loadouts)
+                
+                MenuListItem menuListItem_Loadouts = new MenuListItem("Get Loadout", new List<string>(), 0);
+                menuListItem_Loadouts.ItemData = new List<List<Weapon>>();
+                foreach (Loadout _Loadout in Common.Loadouts)
                 {
-                    if((bool)Loadout.Value["isAvailableForEveryone"])
+                    if (_Loadout.IsAvailableForEveryone
+                        || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
+                            && (_Loadout.AvailableForDepartments.Count == 0 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
                     {
-                        menuList_Loadouts.Add(Loadout.Key.ToString());
-                    }
-                    else if((bool)Loadout.Value["useRanks"])
-                    {
-                        string[] availableForRanks = Loadout.Value["availableForRanks"].Values<string>().ToArray();
-                        if (availableForRanks.Contains(playerData.Rank))
-                        {
-                            menuList_Loadouts.Add(Loadout.Key.ToString());
-                        }
-                    }
-                    else if(Loadout.Value["availableForDepartments"] != null)
-                    {
-                        int[] availableForDepartments = Loadout.Value["availableForDepartments"].Values<int>().ToArray();
-                        if (availableForDepartments.Contains(playerData.DepartmentID))
-                        {
-                            menuList_Loadouts.Add(Loadout.Key.ToString());
-                        }
+                        menuListItem_Loadouts.ListItems.Add(_Loadout.Name);
+                        menuListItem_Loadouts.ItemData.Add(_Loadout.Weapons);
                     }
                 }
+                menu.AddMenuItem(menuListItem_Loadouts);
 
-                MenuListItem menuListItem_Loadout = new MenuListItem("Get Loadout", menuList_Loadouts, 0);
-                menu.AddMenuItem(menuListItem_Loadout);
+                MenuItem menuItem_ReturnWeapons = new MenuItem("Return all weapons");
+                menu.AddMenuItem(menuItem_ReturnWeapons);
 
-                menu.AddMenuItem(new MenuItem("Return all weapons")
+                MenuItem menuItem_HealthArmor = new MenuItem("Refill health & armor");
+                menu.AddMenuItem(menuItem_HealthArmor);
+
+                MenuItem menuItem_DutyToggle = new MenuItem("Go " + (_isPlayerOnDuty ? "off" : "on") + " duty", "")
                 {
                     Enabled = true,
-                });
-
-                menu.AddMenuItem(new MenuItem("Refill health & armor")
-                {
-                    Enabled = true
-                });
-
-                string dutyText;
-                if (Utilities.IsPlayerOnDuty()) dutyText = "Go off duty";
-                else dutyText = "Go on duty";
-
-                menu.AddMenuItem(new MenuItem(dutyText, "")
-                {
-                    Enabled = true
-                });
+                    ItemData = _isPlayerOnDuty
+                };
+                menu.AddMenuItem(menuItem_DutyToggle);
 
 
                 menu.OnItemSelect += (_menu, _item, _index) =>
                 {
-                    switch(_item.Text)
+                    if(_index == menuItem_ChangeOutfit.Index)
                     {
-                        case "Change outfit":
-                            menu.CloseMenu();
-                            ExecuteCommand("eup");
-                            break;
-                        case "Return all weapons":
-                            Common.DisplayNotification("All weapons returned to armory");
-                            Game.PlayerPed.Weapons.RemoveAll();
-                            break;
-                        case "Refill health & armor":
-                            Common.DisplayNotification("Health & armor refilled");
-                            Game.PlayerPed.Health = Game.PlayerPed.MaxHealth;
-                            Game.PlayerPed.Armor = Game.Player.MaxArmor;
-                            break;
-                        case "Go off duty":
-                            Utilities.SetPlayerDuty(false);
-                            _item.Text = "Go on duty";
-                            break;
-                        case "Go on duty":
-                            Utilities.SetPlayerDuty(true);
-                            _item.Text = "Go off duty";
-                            break;
+                        menu.CloseMenu();
+                        ExecuteCommand("eup");
+                    }
+                    else if(_index == menuItem_ReturnWeapons.Index)
+                    {
+                        Game.PlayerPed.Weapons.RemoveAll();
+                        Common.DisplayNotification("All weapons returned to armory");
+                    }
+                    else if(_index == menuItem_HealthArmor.Index)
+                    {
+                        Game.PlayerPed.Health = Game.PlayerPed.MaxHealth;
+                        Game.PlayerPed.Armor = Game.Player.MaxArmor;
+                        Common.DisplayNotification("Health & armor refilled");
+                    }
+                    else if(_index == menuItem_DutyToggle.Index)
+                    {
+                        Utilities.SetPlayerDuty(!(bool)_item.ItemData);
+                        _item.Text = "Go " + (!(bool)_item.ItemData ? "off" : "on") + " duty";
+                        _item.ItemData = !(bool)_item.ItemData;
                     }
                 };
 
 
                 menu.OnListItemSelect += (_menu, _listItem, _listIndex, _itemIndex) =>
                 {
-
-                    if (_listItem == menuListItem_Loadout)
+                    if (_itemIndex == menuListItem_PedModels.Index)
+                    {
+                        List<string> _ItemData = _listItem.ItemData;
+                        _ = ChangePlayerPed(_ItemData.ElementAt(_listIndex));
+                    }
+                    else if (_itemIndex == menuListItem_Loadouts.Index)
                     {
                         Game.PlayerPed.Weapons.RemoveAll();
-                        
-                        foreach (var weapon in Common.Loadouts[menuList_Loadouts.ElementAt(_listIndex)]["weapons"])
+
+                        List<List<Weapon>> _ItemData = _listItem.ItemData;
+                        foreach (Weapon _Weapon in _ItemData.ElementAt(_listIndex))
                         {
-                            int ammo = (int)weapon["ammo"];
-                            uint weaponHash = (uint)GetHashKey((string)weapon["weapon"]);
+                            uint _weaponHash = (uint)GetHashKey(_Weapon.Model);
 
-                            GiveWeaponToPed(PlayerPedId(), weaponHash, ammo, false, false);
+                            GiveWeaponToPed(PlayerPedId(), _weaponHash, _Weapon.Ammo, false, false);
+                            SetPedAmmo(PlayerPedId(), _weaponHash, _Weapon.Ammo); // Need to call this; GiveWeaponToPed always adds ammo up
 
-                            if (weapon["components"] != null) {
-                                foreach (string weaponComponent in weapon["components"].Values<string>().ToArray()) {
-                                    Console.WriteLine(weaponComponent);
-                                    GiveWeaponComponentToPed(PlayerPedId(), weaponHash, (uint)GetHashKey(weaponComponent));
+                            if (_Weapon.Components.Length > 0) {
+                                foreach (string _weaponComponent in _Weapon.Components) {
+                                    GiveWeaponComponentToPed(PlayerPedId(), _weaponHash, (uint)GetHashKey(_weaponComponent));
                                 }
-                                
-                             }
-                           
+                            }
                         }
                         Common.DisplayNotification("Loadout received");
-                    }
-                    else if(_listItem == menuListItem_PedModels)
-                    {
-                        _ = ChangePlayerPed(PedModels[menuList_PedModels.ElementAt(_listIndex)]["model"].ToString());
                     }
                 };
 
@@ -226,9 +190,7 @@ namespace IntuitiveMenus
         }
 
         internal List<Vector3> Locations = new List<Vector3>();
-        internal JObject PedModels = new JObject();
+        internal List<PedModel> PedModels = new List<PedModel>();
+
     }
-    
-
-
 }
