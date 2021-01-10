@@ -15,6 +15,9 @@ namespace IntuitiveMenus
 {
     class Trunk
     {
+        string AnimDict = "mini@repair";
+        int vehicleHandle = 0;
+
         internal async Task OpenTrunk()
         {
             float triggerDistance = 2.0f;
@@ -85,98 +88,112 @@ namespace IntuitiveMenus
             }
         }
 
-        internal Menu menu;
-        string AnimDict = "mini@repair";
-        int vehicleHandle = 0;
-
         internal async Task OpenMenu()
         {
             PlayerData playerData = Utilities.GetPlayerData();
 
-            menu = new Menu("Trunk");
+            Menu menu = new Menu("Trunk");
             MenuController.AddMenu(menu);
 
-
-            List<string> menuList_Loadouts = new List<string>() { };
-
             // Check which loadouts are available for the player in the trunk and create the menu buttons for it
-            // Todo: Get rid of parsing json here and create custom objects
-            foreach (var Loadout in Loadouts)
+            foreach (Loadout _Loadout in Loadouts)
             {
-                if ((bool)Loadout.Value["isAvailableForEveryone"])
+                if (_Loadout.IsAvailableForEveryone
+                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
+                        && (_Loadout.AvailableForDepartments.Count == 1 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
                 {
-                    MenuItem _menuButton = new MenuItem("Take " + Loadout.Key);
-                    foreach (var weapon in Loadout.Value["weapons"])
+                    bool _missesWeapon = false;
+                    foreach (var _Weapon in _Loadout.Weapons)
                     {
-                        if (HasPedGotWeapon(PlayerPedId(), (uint)GetHashKey(weapon["weapon"].ToString()), false)) _menuButton.Text = "Put back " + Loadout.Key;
-                    }                        
+                        if (!_missesWeapon && !HasPedGotWeapon(PlayerPedId(), (uint)GetHashKey(_Weapon.Model), false)) _missesWeapon = true;
+                    }
+                    MenuItem _menuButton = new MenuItem((_missesWeapon ? "Take" : "Put back") + " " + _Loadout.Name);
+                    _menuButton.ItemData = new Tuple<bool, List<Weapon>>(_missesWeapon, _Loadout.Weapons);
                     menu.AddMenuItem(_menuButton);
                 }
-                else if ((bool)Loadout.Value["useRanks"])
+            }
+
+            MenuItem menuItem_RefillAmmo = new MenuItem("Refill Ammo");
+            menuItem_RefillAmmo.ItemData = new Dictionary<string, int>();
+            // Iterate through normal loadouts
+            foreach (Loadout _Loadout in Common.Loadouts)
+            {
+                if (_Loadout.IsAvailableForEveryone
+                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
+                        && (_Loadout.AvailableForDepartments.Count == 0 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
                 {
-                    string[] availableForRanks = Loadout.Value["availableForRanks"].Values<string>().ToArray();
-                    if (availableForRanks.Contains(playerData.Rank))
+                    foreach(Weapon _Weapon in _Loadout.Weapons)
                     {
-                        MenuItem _menuButton = new MenuItem("Take " + Loadout.Key);
-                        foreach (var weapon in Loadout.Value["weapons"])
-                        {
-                            if (HasPedGotWeapon(PlayerPedId(), (uint)GetHashKey(weapon["weapon"].ToString()), false)) _menuButton.Text = "Put back " + Loadout.Key;
-                        }
-                        menu.AddMenuItem(_menuButton);
+                        menuItem_RefillAmmo.ItemData[_Weapon.Model] = _Weapon.Ammo;
                     }
                 }
-                else if (Loadout.Value["availableForDepartments"] != null)
+            }
+            // Iterate through trunk loadouts
+            foreach (Loadout _Loadout in Loadouts)
+            {
+                if(_Loadout.IsAvailableForEveryone
+                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
+                        && (_Loadout.AvailableForDepartments.Count == 1 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
                 {
-                    int[] availableForDepartments = Loadout.Value["availableForDepartments"].Values<int>().ToArray();
-                    if (availableForDepartments.Count() == 1 || availableForDepartments.Contains(playerData.DepartmentID))
+                    foreach (Weapon _Weapon in _Loadout.Weapons)
                     {
-                        MenuItem _menuButton = new MenuItem("Take " + Loadout.Key);
-                        foreach (var weapon in Loadout.Value["weapons"])
-                        {
-                            if (HasPedGotWeapon(PlayerPedId(), (uint)GetHashKey(weapon["weapon"].ToString()), false)) _menuButton.Text = "Put back " + Loadout.Key;
-                        }
-                        menu.AddMenuItem(_menuButton);
+                        menuItem_RefillAmmo.ItemData[_Weapon.Model] = _Weapon.Ammo;
                     }
                 }
-            }           
+            }
+            menu.AddMenuItem(menuItem_RefillAmmo);
 
             menu.OnItemSelect += (_menu, _item, _index) =>
             {
-                // Give the weapon to the player
-                // Todo: Maybe find a more elegant way instead of checking the button text?
-                if (_item.Text.StartsWith("Take"))
+                if (_item.Index == menuItem_RefillAmmo.Index)
                 {
-                    foreach (var weapon in Loadouts[_item.Text.Replace("Take ", "")]["weapons"])
+                    Dictionary<string, int> _itemData = _item.ItemData;
+
+                    foreach (KeyValuePair<string, int> _RefillItem in _itemData)
                     {
-                        int ammo = (int)weapon["ammo"];
-                        uint weaponHash = (uint)GetHashKey((string)weapon["weapon"]);
+                        uint _weaponHash = (uint)GetHashKey(_RefillItem.Key);
 
-                        GiveWeaponToPed(PlayerPedId(), weaponHash, ammo, false, true);
+                        if(GetAmmoInPedWeapon(PlayerPedId(), _weaponHash) < _RefillItem.Value) SetPedAmmo(PlayerPedId(), _weaponHash, _RefillItem.Value);
+                    }
+                }
+                else
+                {
+                    // Give the weapon to the player
+                    Tuple<bool, List<Weapon>> _ItemData = _item.ItemData;
 
-                        if (weapon["components"] != null)
+                    if (_ItemData.Item1)
+                    {
+                        foreach (Weapon _Weapon in _ItemData.Item2)
                         {
-                            foreach (string weaponComponent in weapon["components"].Values<string>().ToArray())
-                            {
-                                Console.WriteLine(weaponComponent);
-                                GiveWeaponComponentToPed(PlayerPedId(), weaponHash, (uint)GetHashKey(weaponComponent));
-                            }
+                            uint _weaponHash = (uint)GetHashKey(_Weapon.Model);
 
+                            GiveWeaponToPed(PlayerPedId(), _weaponHash, _Weapon.Ammo, false, false);
+                            SetPedAmmo(PlayerPedId(), _weaponHash, _Weapon.Ammo); // Need to call this; GiveWeaponToPed always adds ammo up
+
+                            if (_Weapon.Components.Length > 0)
+                            {
+                                foreach (string _weaponComponent in _Weapon.Components)
+                                {
+                                    GiveWeaponComponentToPed(PlayerPedId(), _weaponHash, (uint)GetHashKey(_weaponComponent));
+                                }
+                            }
                         }
+                        _item.Text = _item.Text.Replace("Take", "Put back");
 
                     }
-                    _item.Text = _item.Text.Replace("Take", "Put back");
-                }
-                // Remove the weapon from the player
-                else if (_item.Text.StartsWith("Put back"))
-                {
-                    foreach (var weapon in Loadouts[_item.Text.Replace("Put back ", "")]["weapons"])
+                    else
                     {
-                        uint weaponHash = (uint)GetHashKey((string)weapon["weapon"]);
-                        RemoveWeaponFromPed(PlayerPedId(), weaponHash);
+                        foreach (Weapon _Weapon in _ItemData.Item2)
+                        {
+                            uint _weaponHash = (uint)GetHashKey(_Weapon.Model);
+                            RemoveWeaponFromPed(PlayerPedId(), _weaponHash);
+                        }
                         _item.Text = _item.Text.Replace("Put back", "Take");
                     }
+
+                    _item.ItemData = new Tuple<bool, List<Weapon>>(!_ItemData.Item1, _ItemData.Item2);
                 }
-            };
+             };
 
             // Stop animation and close the trunk when player exits vehicle
             menu.OnMenuClose += (_menu) =>
@@ -189,6 +206,6 @@ namespace IntuitiveMenus
             menu.OpenMenu();
         }
 
-        internal JObject Loadouts = new JObject();
+        internal List<Loadout> Loadouts = new List<Loadout>();
     }
 }

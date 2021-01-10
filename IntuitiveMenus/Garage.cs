@@ -14,7 +14,7 @@ namespace IntuitiveMenus
     class Garage
     {
         internal Menu menu;
-        internal int SpawnedVehicle;
+        internal int LastSpawnedVehicle;
 
         internal void ShowMenu(int locationIndex)
         {
@@ -28,8 +28,8 @@ namespace IntuitiveMenus
 
             
             MenuItem menuButton_SelectVehicle = new MenuItem("Select Car");
-            MenuListItem menuListItem_Liveries = new MenuListItem("Livery", null, 0);
-            MenuListItem menuListItem_Colors = new MenuListItem("Color", null, 0);
+            MenuListItem menuListItem_Liveries = new MenuListItem("Livery", new List<string>(), 0);
+            MenuListItem menuListItem_Colors = new MenuListItem("Color", new List<string>(), 0);
             MenuItem menuButton_Extras = new MenuItem("Extras");
             MenuItem menuItem_DeleteVehicle = new MenuItem("Delete vehicle");
 
@@ -48,6 +48,9 @@ namespace IntuitiveMenus
 
                     menu.ClearMenuItems();
 
+                    menuListItem_Liveries = new MenuListItem("Livery", new List<string>(), 0);
+                    menuListItem_Colors = new MenuListItem("Color", new List<string>(), 0);
+
                     menuButton_SelectVehicle = new MenuItem("Select Car")
                     {
                         Label = "→→→"
@@ -61,17 +64,17 @@ namespace IntuitiveMenus
                     GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref _entityHit);
 
                     // Check if the vehicle currently in the spawn area has liveries and add them to the menu
-                    List<string> menuList_Liveries = new List<string>() { };
-                    menuListItem_Liveries = new MenuListItem("Livery", menuList_Liveries, 0);
-
                     int liveryCount = GetVehicleLiveryCount(_entityHit);
 
                     if (_Hit && liveryCount > 1)
                     {
                         for (int i = 0; i < liveryCount; i++)
                         {
-                            menuList_Liveries.Add((i+1) + "/" + liveryCount);
+                            menuListItem_Liveries.ListItems.Add((i+1) + "/" + liveryCount);
                         }
+                        menuListItem_Liveries.ListIndex = GetVehicleLivery(_entityHit);
+                        menuListItem_Liveries.Enabled = true;
+                        menuListItem_Liveries.Description = null;
                     }
                     else
                     {
@@ -82,14 +85,8 @@ namespace IntuitiveMenus
 
 
                     // Check if the entity in the spawn area is a vehicle and add color options to the menu
-                    List<string> menuList_Colors = new List<string>() { };
-                    menuListItem_Colors = new MenuListItem("Color", menuList_Colors, 0);
-                    if (!_Hit || GetEntityType(_entityHit) != 2)
-                    {
-                        menuListItem_Colors.Enabled = false;
-                        menuListItem_Colors.Description = "No vehicle found";
-                    }
-                    else
+
+                    if (_Hit || GetEntityType(_entityHit) == 2)
                     {
                         int defaultPrimary = 0;
                         int defaultSecondary = 0;
@@ -97,10 +94,15 @@ namespace IntuitiveMenus
                         Colors["Default"] = defaultPrimary;
                         foreach (var entry in Colors)
                         {
-                            menuList_Colors.Add(entry.Key);
+                            menuListItem_Colors.ListItems.Add(entry.Key);
                         }
                         menuListItem_Colors.Enabled = true;
                         menuListItem_Colors.Description = "Not all liveries support colors";
+                    }
+                    else
+                    {
+                        menuListItem_Colors.Enabled = false;
+                        menuListItem_Colors.Description = "No vehicle found";
                     }
                     menu.AddMenuItem(menuListItem_Colors);
 
@@ -147,36 +149,16 @@ namespace IntuitiveMenus
 
                     menu_SelectVehicle.ClearMenuItems();
 
-                    foreach (var Vehicle in Common.Vehicles["police"])
+                    foreach (Vehicle _Vehicle in Vehicles)
                     {
-                        if ((bool)Vehicle["isAvailableForEveryone"])
+
+                        if (_Vehicle.IsAvailableForEveryone
+                            || ((!_Vehicle.UseRanks || _Vehicle.AvailableForRanks.Contains(playerData.Rank))
+                                && (_Vehicle.AvailableForDepartments.Count == 0 || _Vehicle.AvailableForDepartments.Contains(playerData.DepartmentID))))
                         {
-                            menu_SelectVehicle.AddMenuItem(new MenuItem(Vehicle["name"].ToString())
-                            {
-                                Enabled = true
-                            });
-                        }
-                        else if ((bool)Vehicle["useRanks"])
-                        {
-                            string[] availableForRanks = Vehicle["availableForRanks"].Values<string>().ToArray();
-                            if (availableForRanks.Contains(playerData.Rank))
-                            {
-                                menu_SelectVehicle.AddMenuItem(new MenuItem(Vehicle["name"].ToString())
-                                {
-                                    Enabled = true
-                                });
-                            }
-                        }
-                        else if (Vehicle["availableForDepartments"] != null)
-                        {
-                            int[] availableForDepartments = Vehicle["availableForDepartments"].Values<int>().ToArray();
-                            if (availableForDepartments.Contains(playerData.DepartmentID))
-                            {
-                                menu_SelectVehicle.AddMenuItem(new MenuItem(Vehicle["name"].ToString())
-                                {
-                                    Enabled = true
-                                });
-                            }
+                            MenuItem _menuButton = new MenuItem(_Vehicle.Name);
+                            _menuButton.ItemData = _Vehicle.Model;
+                            menu_SelectVehicle.AddMenuItem(_menuButton);
                         }
                     }
                 };
@@ -221,25 +203,19 @@ namespace IntuitiveMenus
 
                 menu_SelectVehicle.OnItemSelect += (_menu, _item, _index) =>
                 {
-                    // Delete previously spawned vehicle first
-                    // TODO: Maybe do this only if the vehicle is still in the spawn area, so one player can spawn multiple vehicles (for other players)
-                    if (SpawnedVehicle > 0) DeleteVehicle(ref SpawnedVehicle);
-
                     // Check again if something is blocking
                     rayHandle = CastRayPointToPoint(SpawnLocations[locationIndex].X - 2, SpawnLocations[locationIndex].Y - 2, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].X + 2, SpawnLocations[locationIndex].Y + 2, SpawnLocations[locationIndex].Z + 1, -1, 0, 0);
                     GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref _entityHit);
-                    
-                    if (!_Hit)
-                    {
-                        JObject vehicle = Common.Vehicles["police"].Values<JObject>()
-                            .Where(m => m["name"].Value<string>() == _item.Text)
-                            .FirstOrDefault();
-                        _ = SpawnVehicle(locationIndex, vehicle["vehicle"].ToString());
-                    }
-                    else
-                    {
-                        Common.DisplayNotification("Something is blocking the spawn area");
-                    }
+
+                    // Delete previously spawned vehicle if it is still in the spawn area
+                    if (LastSpawnedVehicle == _entityHit) DeleteVehicle(ref LastSpawnedVehicle);
+
+                    // Check once again if something is blocking; Maybe there was more than 1 vehicle
+                    rayHandle = CastRayPointToPoint(SpawnLocations[locationIndex].X - 2, SpawnLocations[locationIndex].Y - 2, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].X + 2, SpawnLocations[locationIndex].Y + 2, SpawnLocations[locationIndex].Z + 1, -1, 0, 0);
+                    GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref _entityHit);
+
+                    if (!_Hit) _ = SpawnVehicle(locationIndex, _item.ItemData);
+                    else Common.DisplayNotification("Something is blocking the spawn area");
                 };
 
                 menu.OnListIndexChange += (_menu, _listItem, _oldIndex, _newIndex, _itemIndex) =>
@@ -272,7 +248,6 @@ namespace IntuitiveMenus
                 menu.OnMenuClose += (_menu) =>
                 {
                     Common.IsMenuOpen = false;
-                    SpawnedVehicle = 0;
                 };
 
                 menu_SelectVehicle.OnMenuClose += (_menu) =>
@@ -306,9 +281,9 @@ namespace IntuitiveMenus
 
             if (HasModelLoaded(vehicle))
             {
-                SpawnedVehicle = CreateVehicle(vehicle, SpawnLocations[locationIndex].X, SpawnLocations[locationIndex].Y, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].W, true, false);
-                SetVehicleOnGroundProperly(SpawnedVehicle);
-                SetModelAsNoLongerNeeded((uint)SpawnedVehicle);
+                LastSpawnedVehicle = CreateVehicle(vehicle, SpawnLocations[locationIndex].X, SpawnLocations[locationIndex].Y, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].W, true, false);
+                SetVehicleOnGroundProperly(LastSpawnedVehicle);
+                SetModelAsNoLongerNeeded((uint)LastSpawnedVehicle);
             }
             else
             {
@@ -329,6 +304,7 @@ namespace IntuitiveMenus
             { "White", 111 }
         };
 
+        internal List<Vehicle> Vehicles = new List<Vehicle>();
         internal List<Vector3> Locations = new List<Vector3>();
         internal List<Vector4> SpawnLocations = new List<Vector4>();
     }

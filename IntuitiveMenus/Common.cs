@@ -1,17 +1,15 @@
 ﻿using Newtonsoft.Json.Linq;
 using static CitizenFX.Core.Native.API;
 using CitizenFX.Core;
+using System.Collections.Generic;
 
 
 namespace IntuitiveMenus
 {
     internal static class Common
     {
-        internal static bool IsMenuOpen { get; set; } = false;
-        internal static JObject Loadouts = new JObject();
-        internal static JObject Vehicles = new JObject();
-        internal static JObject Coordinates = new JObject();
-        internal static bool IsAllowed = false;
+        internal static bool IsMenuOpen { get; set; }
+        internal static List<Loadout> Loadouts { get; set; }
 
 
         internal static void DisplayNotification(string text)
@@ -54,5 +52,43 @@ namespace IntuitiveMenus
                     false // drawOnEnts
                     );
         }
+    }
+
+    internal class Loadout
+    {
+        internal string Name { get; set; }
+        internal bool IsAvailableForEveryone { get; set; }
+        internal bool UseRanks { get; set; }
+        internal List<string> AvailableForRanks { get; set; }
+        internal List<int> AvailableForDepartments { get; set; }
+        internal List<Weapon> Weapons { get; set; }
+
+    }
+
+    internal class Weapon
+    {
+        internal string Model { get; set; }
+        internal string[] Components { get; set; }
+        internal int Ammo { get; set; }
+    }
+
+    internal class Vehicle
+    {
+        internal string Name { get; set; }
+        internal string Model { get; set; }
+        internal bool IsAvailableForEveryone { get; set; }
+        internal bool UseRanks { get; set; }
+        internal List<string> AvailableForRanks { get; set; }
+        internal List<int> AvailableForDepartments { get; set; }
+    }
+
+    internal class PedModel
+    {
+        internal string Name { get; set; }
+        internal string Model { get; set; }
+        internal bool IsAvailableForEveryone { get; set; }
+        internal bool UseRanks { get; set; }
+        internal List<string> AvailableForRanks { get; set; }
+        internal List<int> AvailableForDepartments { get; set; }
     }
 }
