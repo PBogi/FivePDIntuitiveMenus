@@ -271,7 +271,7 @@ namespace IntuitiveMenus
                 {
                     BeginTextCommandDisplayHelp("STRING");
                     AddTextComponentSubstringKeyboardDisplay("Press ~INPUT_CONTEXT~ to access the locker room");
-                    EndTextCommandDisplayHelp(0, false, false, -1);
+                    EndTextCommandDisplayHelp(0, true, false, -1);
 
                     if (Game.IsControlJustReleased(1, Control.Context))
                     {
@@ -297,7 +297,7 @@ namespace IntuitiveMenus
                     {
                         BeginTextCommandDisplayHelp("STRING");
                         AddTextComponentSubstringKeyboardDisplay("Press ~INPUT_CONTEXT~ to access garage");
-                        EndTextCommandDisplayHelp(0, false, false, -1);
+                        EndTextCommandDisplayHelp(0, true, false, -1);
 
                         if (Game.IsControlJustReleased(1, Control.Context))
                         {
