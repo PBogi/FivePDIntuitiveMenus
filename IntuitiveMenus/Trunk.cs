@@ -98,9 +98,21 @@ namespace IntuitiveMenus
             // Check which loadouts are available for the player in the trunk and create the menu buttons for it
             foreach (Loadout _Loadout in Loadouts)
             {
-                if (_Loadout.IsAvailableForEveryone
-                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
-                        && (_Loadout.AvailableForDepartments.Count == 1 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                bool _isAllowed = false;
+
+                if (_Loadout.IsAvailableForEveryone) _isAllowed = true;
+                else if (_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                }
+                else if (!_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                    else if (_Loadout.AvailableForDepartments.Count == 1) _isAllowed = true;
+                }
+
+
+                if (_isAllowed)
                 {
                     bool _missesWeapon = false;
                     foreach (var _Weapon in _Loadout.Weapons)
@@ -118,9 +130,18 @@ namespace IntuitiveMenus
             // Iterate through normal loadouts
             foreach (Loadout _Loadout in Common.Loadouts)
             {
-                if (_Loadout.IsAvailableForEveryone
-                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
-                        && (_Loadout.AvailableForDepartments.Count == 0 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                bool _isAllowed = false;
+
+                if (_Loadout.IsAvailableForEveryone) _isAllowed = true;
+                else if (_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                }
+                else if (!_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                }
+                if (_isAllowed)
                 {
                     foreach(Weapon _Weapon in _Loadout.Weapons)
                     {
@@ -131,9 +152,20 @@ namespace IntuitiveMenus
             // Iterate through trunk loadouts
             foreach (Loadout _Loadout in Loadouts)
             {
-                if(_Loadout.IsAvailableForEveryone
-                    || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
-                        && (_Loadout.AvailableForDepartments.Count == 1 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                bool _isAllowed = false;
+
+                if (_Loadout.IsAvailableForEveryone) _isAllowed = true;
+                else if (_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                }
+                else if (!_Loadout.UseRanks)
+                {
+                    if (_Loadout.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                    else if (_Loadout.AvailableForDepartments.Count == 1) _isAllowed = true;
+                }
+
+                if (_isAllowed)
                 {
                     foreach (Weapon _Weapon in _Loadout.Weapons)
                     {

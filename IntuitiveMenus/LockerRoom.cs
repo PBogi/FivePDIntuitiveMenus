@@ -44,9 +44,19 @@ namespace IntuitiveMenus
                     
                     foreach (PedModel _PedModel in PedModels)
                     {
-                        if (_PedModel.IsAvailableForEveryone
-                            || ((!_PedModel.UseRanks || _PedModel.AvailableForRanks.Contains(playerData.Rank))
-                                && (_PedModel.AvailableForDepartments.Count == 0 || _PedModel.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                        bool _isAllowed = false;
+
+                        if (_PedModel.IsAvailableForEveryone) _isAllowed = true;
+                        else if (_PedModel.UseRanks)
+                        {
+                            if (_PedModel.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                        }
+                        else if (!_PedModel.UseRanks)
+                        {
+                            if (_PedModel.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                        }
+
+                        if (_isAllowed)
                         {
                             menuListItem_PedModels.ListItems.Add(_PedModel.Name);
                             menuListItem_PedModels.ItemData.Add(_PedModel.Model); 
@@ -61,9 +71,19 @@ namespace IntuitiveMenus
                 menuListItem_Loadouts.ItemData = new List<List<Weapon>>();
                 foreach (Loadout _Loadout in Common.Loadouts)
                 {
-                    if (_Loadout.IsAvailableForEveryone
-                        || ((!_Loadout.UseRanks || _Loadout.AvailableForRanks.Contains(playerData.Rank))
-                            && (_Loadout.AvailableForDepartments.Count == 0 || _Loadout.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                    bool _isAllowed = false;
+
+                    if (_Loadout.IsAvailableForEveryone) _isAllowed = true;
+                    else if (_Loadout.UseRanks)
+                    {
+                        if (_Loadout.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                    }
+                    else if (!_Loadout.UseRanks)
+                    {
+                        if (_Loadout.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                    }
+
+                    if (_isAllowed)
                     {
                         menuListItem_Loadouts.ListItems.Add(_Loadout.Name);
                         menuListItem_Loadouts.ItemData.Add(_Loadout.Weapons);
