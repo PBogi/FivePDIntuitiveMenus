@@ -292,7 +292,8 @@ namespace IntuitiveMenus
             {
                 LastSpawnedVehicle = CreateVehicle(vehicle, SpawnLocations[locationIndex].X, SpawnLocations[locationIndex].Y, SpawnLocations[locationIndex].Z, SpawnLocations[locationIndex].W, true, false);
                 SetVehicleOnGroundProperly(LastSpawnedVehicle);
-                SetModelAsNoLongerNeeded((uint)LastSpawnedVehicle);
+                SetVehicleHasBeenOwnedByPlayer((int)vehicle, true);
+                SetEntityAsMissionEntity((int)vehicle, true, true);
             }
             else
             {
