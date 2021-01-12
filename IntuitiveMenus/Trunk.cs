@@ -20,25 +20,25 @@ namespace IntuitiveMenus
 
         internal async Task OpenTrunk()
         {
-            if (Utilities.IsPlayerOnDuty())
+            float triggerDistance = 2.0f;
+
+            // Find entities in front of player
+            Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
+            int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
+            bool _Hit = false;
+            Vector3 _endCoords = new Vector3();
+            Vector3 _surfaceNormal = new Vector3();
+
+            GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
+
+            // Check if the entity hit is an emergency vehicle (class 18)
+            if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
             {
-                float triggerDistance = 2.0f;
-
-                // Find entities in front of player
-                Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
-                int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
-                bool _Hit = false;
-                Vector3 _endCoords = new Vector3();
-                Vector3 _surfaceNormal = new Vector3();
-
-                GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
-
-                // Check if the entity hit is an emergency vehicle (class 18)
-                if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
+                // Find the trunk bone from the vehicle and check if it's within the trigger distance
+                Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
+                if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
                 {
-                    // Find the trunk bone from the vehicle and check if it's within the trigger distance
-                    Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
-                    if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
+                    if (Utilities.IsPlayerOnDuty())
                     {
                         // Request the animation dictionary and wait for it to be loaded
                         RequestAnimDict(AnimDict);
@@ -83,15 +83,15 @@ namespace IntuitiveMenus
                             SetEntityNoCollisionEntity(PlayerPedId(), vehicleHandle, true);
                         }
                     }
-                    else if (IsEntityPlayingAnim(PlayerPedId(), AnimDict, "fixing_a_ped", 3))
+                    else
                     {
-                        StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
+                        Common.DisplayNotification("You need to be on duty to access the trunk!");
                     }
                 }
-            }
-            else
-            {
-                Common.DisplayNotification("You need to be on duty to access the trunk!");
+                else if (IsEntityPlayingAnim(PlayerPedId(), AnimDict, "fixing_a_ped", 3))
+                {
+                    StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
+                }
             }
         }
 
