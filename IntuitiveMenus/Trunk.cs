@@ -20,71 +20,78 @@ namespace IntuitiveMenus
 
         internal async Task OpenTrunk()
         {
-            float triggerDistance = 2.0f;
-
-            // Find entities in front of player
-            Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
-            int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
-            bool _Hit = false;
-            Vector3 _endCoords = new Vector3();
-            Vector3 _surfaceNormal = new Vector3();
-            
-            GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
-
-            // Check if the entity hit is an emergency vehicle (class 18)
-            if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
+            if (Utilities.IsPlayerOnDuty())
             {
-                // Find the trunk bone from the vehicle and check if it's within the trigger distance
-                Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
-                if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
+                float triggerDistance = 2.0f;
+
+                // Find entities in front of player
+                Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
+                int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
+                bool _Hit = false;
+                Vector3 _endCoords = new Vector3();
+                Vector3 _surfaceNormal = new Vector3();
+
+                GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
+
+                // Check if the entity hit is an emergency vehicle (class 18)
+                if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
                 {
-                    // Request the animation dictionary and wait for it to be loaded
-                    RequestAnimDict(AnimDict);
-
-                    int maxretries = 0;
-                    while (!HasAnimDictLoaded(AnimDict) && maxretries < 10)
+                    // Find the trunk bone from the vehicle and check if it's within the trigger distance
+                    Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
+                    if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
                     {
-                        await BaseScript.Delay(25);
-                        maxretries++;
+                        // Request the animation dictionary and wait for it to be loaded
+                        RequestAnimDict(AnimDict);
+
+                        int maxretries = 0;
+                        while (!HasAnimDictLoaded(AnimDict) && maxretries < 10)
+                        {
+                            await BaseScript.Delay(25);
+                            maxretries++;
+                        }
+
+                        // Check if the trunk is open or closed and act accordingly
+                        if (GetVehicleDoorAngleRatio(vehicleHandle, 5) > 0)
+                        {
+                            SetVehicleDoorShut(vehicleHandle, 5, false);
+                            StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
+                        }
+                        else
+                        {
+                            _ = OpenMenu(vehicleHandle);
+
+                            SetCurrentPedWeapon(PlayerPedId(), (uint)GetHashKey("WEAPON_UNARMED"), true);
+                            SetVehicleDoorOpen(vehicleHandle, 5, false, false);
+
+                            if (HasAnimDictLoaded(AnimDict))
+                            {
+                                TaskPlayAnim(
+                                    PlayerPedId(), // ped
+                                    AnimDict, // Anim Dictionary
+                                    "fixing_a_ped", // Animation
+                                    4.0f, // Blend in speed
+                                    4.0f, // Blend out speed
+                                    -1, // Duration
+                                    1, // Flag
+                                    0.5f, // Playback Rate
+                                    false, // Lock X
+                                    false, // Lock Y
+                                    false // Lock Z
+                                );
+                            }
+                            await BaseScript.Delay(100);
+                            SetEntityNoCollisionEntity(PlayerPedId(), vehicleHandle, true);
+                        }
                     }
-
-                    // Check if the trunk is open or closed and act accordingly
-                    if (GetVehicleDoorAngleRatio(vehicleHandle, 5) > 0)
+                    else if (IsEntityPlayingAnim(PlayerPedId(), AnimDict, "fixing_a_ped", 3))
                     {
-                        SetVehicleDoorShut(vehicleHandle, 5, false);
                         StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
                     }
-                    else
-                    {
-                        _ = OpenMenu(vehicleHandle);
-
-                        SetCurrentPedWeapon(PlayerPedId(), (uint)GetHashKey("WEAPON_UNARMED"), true);
-                        SetVehicleDoorOpen(vehicleHandle, 5, false, false);
-
-                        if (HasAnimDictLoaded(AnimDict))
-                        {
-                            TaskPlayAnim(
-                                PlayerPedId(), // ped
-                                AnimDict, // Anim Dictionary
-                                "fixing_a_ped", // Animation
-                                4.0f, // Blend in speed
-                                4.0f, // Blend out speed
-                                -1, // Duration
-                                1, // Flag
-                                0.5f, // Playback Rate
-                                false, // Lock X
-                                false, // Lock Y
-                                false // Lock Z
-                            );
-                        }
-                        await BaseScript.Delay(100);
-                        SetEntityNoCollisionEntity(PlayerPedId(), vehicleHandle, true);
-                    }
                 }
-                else if (IsEntityPlayingAnim(PlayerPedId(), AnimDict, "fixing_a_ped", 3))
-                {
-                    StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
-                }
+            }
+            else
+            {
+                Common.DisplayNotification("You need to be on duty to access the trunk!");
             }
         }
 
@@ -96,18 +103,10 @@ namespace IntuitiveMenus
             MenuController.AddMenu(menu);
 
             MenuItem menuItem_SpikeStrips = new MenuItem("Get spike strip");
-            if (SpikeStripVehicles.Contains(GetEntityModel(vehicleHandle)) && Utilities.IsPlayerOnDuty())
+            if (SpikeStripVehicles.Contains(GetEntityModel(vehicleHandle)))
             {
-                menuItem_SpikeStrips.Enabled = true;
                 menu.AddMenuItem(menuItem_SpikeStrips);
             }
-            else if(SpikeStripVehicles.Contains(GetEntityModel(vehicleHandle)) && !Utilities.IsPlayerOnDuty())
-            {
-                menuItem_SpikeStrips.Enabled = false;
-                menuItem_SpikeStrips.Description = "Go on duty first";
-                menu.AddMenuItem(menuItem_SpikeStrips);
-            }
-            
 
             // Check which loadouts are available for the player in the trunk and create the menu buttons for it
             foreach (Loadout _Loadout in Loadouts)
