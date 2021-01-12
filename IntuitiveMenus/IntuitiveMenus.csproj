@@ -66,10 +66,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetDir)" "D:\Dev\FiveM\FXServer\server-data\resources\fivepd\plugins" /S /E /Y
+    <PostBuildEvent>xcopy "$(TargetDir)*.dll" "D:\Dev\FiveM\FXServer\server-data\resources\fivepd\plugins" /S /E /Y
 
 if $(ConfigurationName) == Release (
-xcopy "$(TargetDir)\*.dll" "D:\Dev\Microsoft Visual Studio\Repos\FivePDIntuitiveMenus\Release\" /Y
+D:
+cd "$(TargetDir)"
+del /F $(ProjectName).zip
+tar.exe -a -c -f "$(ProjectName).zip" "*.dll"
+explorer.exe "$(TargetDir)"
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>
