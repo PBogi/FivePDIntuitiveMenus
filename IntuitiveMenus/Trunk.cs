@@ -16,27 +16,34 @@ namespace IntuitiveMenus
     class Trunk
     {
         string AnimDict = "mini@repair";
-        int vehicleHandle = 0;
 
         internal async Task OpenTrunk()
         {
-            float triggerDistance = 2.0f;
+            float triggerDistance = 1.0f;
 
             // Find entities in front of player
-            Vector3 entityWorld = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance + 5, 0.0f);
-            int rayHandle = CastRayPointToPoint(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, entityWorld.X, entityWorld.Y, entityWorld.Z, 10, PlayerPedId(), 0);
+            Vector3 rayEndCoords = GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0f, triggerDistance+3, -0.7f);
+
+            int rayHandle = StartShapeTestRay(Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z, rayEndCoords.X, rayEndCoords.Y, rayEndCoords.Z, 2, PlayerPedId(), 0);
             bool _Hit = false;
+            int _vehicleHandle = 0;
             Vector3 _endCoords = new Vector3();
             Vector3 _surfaceNormal = new Vector3();
 
-            GetRaycastResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref vehicleHandle);
+            GetShapeTestResult(rayHandle, ref _Hit, ref _endCoords, ref _surfaceNormal, ref _vehicleHandle);
 
             // Check if the entity hit is an emergency vehicle (class 18)
-            if (DoesEntityExist(vehicleHandle) && GetVehicleClass(vehicleHandle) == 18)
+            if (DoesEntityExist(_vehicleHandle) && GetVehicleClass(_vehicleHandle) == 18)
             {
-                // Find the trunk bone from the vehicle and check if it's within the trigger distance
-                Vector3 trunkPos = GetWorldPositionOfEntityBone(vehicleHandle, GetEntityBoneIndexByName(vehicleHandle, "boot"));
-                if (Game.PlayerPed.Position.DistanceTo(trunkPos) < triggerDistance)
+                // Find the back of the vehicle and check if it's within the trigger distance
+                Vector3 offsetFromVehicle = GetOffsetFromEntityGivenWorldCoords(_vehicleHandle, Game.PlayerPed.Position.X, Game.PlayerPed.Position.Y, Game.PlayerPed.Position.Z);
+                Vector3 vehicleDimensionsMinimum = new Vector3();
+                Vector3 vehicleDimensionsMaximum = new Vector3();
+                GetModelDimensions((uint)GetEntityModel(_vehicleHandle), ref vehicleDimensionsMinimum, ref vehicleDimensionsMaximum);
+
+                Vector3 trunkOffset = vehicleDimensionsMinimum - offsetFromVehicle;
+
+                if (trunkOffset.X < triggerDistance && trunkOffset.Y < triggerDistance && trunkOffset.Z < triggerDistance && trunkOffset.Y > -0.25)
                 {
                     if (Utilities.IsPlayerOnDuty())
                     {
@@ -51,17 +58,17 @@ namespace IntuitiveMenus
                         }
 
                         // Check if the trunk is open or closed and act accordingly
-                        if (GetVehicleDoorAngleRatio(vehicleHandle, 5) > 0)
+                        if (GetVehicleDoorAngleRatio(_vehicleHandle, 5) > 0)
                         {
-                            SetVehicleDoorShut(vehicleHandle, 5, false);
+                            SetVehicleDoorShut(_vehicleHandle, 5, false);
                             StopAnimTask(PlayerPedId(), AnimDict, "fixing_a_ped", 4f);
                         }
                         else
                         {
-                            _ = OpenMenu(vehicleHandle);
+                            _ = OpenMenu(_vehicleHandle);
 
                             SetCurrentPedWeapon(PlayerPedId(), (uint)GetHashKey("WEAPON_UNARMED"), true);
-                            SetVehicleDoorOpen(vehicleHandle, 5, false, false);
+                            SetVehicleDoorOpen(_vehicleHandle, 5, false, false);
 
                             if (HasAnimDictLoaded(AnimDict))
                             {
@@ -80,7 +87,7 @@ namespace IntuitiveMenus
                                 );
                             }
                             await BaseScript.Delay(100);
-                            SetEntityNoCollisionEntity(PlayerPedId(), vehicleHandle, true);
+                            SetEntityNoCollisionEntity(PlayerPedId(), _vehicleHandle, true);
                         }
                     }
                     else
