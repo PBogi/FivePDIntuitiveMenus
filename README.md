@@ -26,3 +26,8 @@ Any contribution is welcome. Feel free to create a pull request.
  
 ## Customizations
 [Check out the customization options and example here](./Customization)
+ 
+## Screenshots
+<img src="https://raw.githubusercontent.com/PBogi/FivePDIntuitiveMenus/master/Screenshots/LockerRoom.jpg" width="800" height="450">
+<img src="https://raw.githubusercontent.com/PBogi/FivePDIntuitiveMenus/master/Screenshots/Garage.jpg" width="800" height="450">
+<img src="https://raw.githubusercontent.com/PBogi/FivePDIntuitiveMenus/master/Screenshots/Trunk.jpg" width="800" height="450">
