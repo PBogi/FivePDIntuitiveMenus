@@ -23,6 +23,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OPTIONAL", "OPTIONAL", "{2F
 		Release\OPTIONAL\pedmodels.json = Release\OPTIONAL\pedmodels.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Customization", "Customization", "{BBFBEF73-2C6B-4EC1-B826-450C85AF11FE}"
+	ProjectSection(SolutionItems) = preProject
+		Customization\coordinates.example.json = Customization\coordinates.example.json
+		Customization\loadouts.example.json = Customization\loadouts.example.json
+		Customization\pedmodels.json = Customization\pedmodels.json
+		Customization\README.md = Customization\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

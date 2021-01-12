@@ -1,0 +1,34 @@
+,
+	"Fire Extinguisher": {
+		"isAvailableForEveryone": false,
+		"useRanks": false,
+		"availableForDepartments": [9999],
+		"weapons": [
+			{
+				"weapon": "WEAPON_FIREEXTINGUISHER",
+				"ammo": 1000
+			}
+		]
+	},
+	"Rifle": {
+		"isAvailableForEveryone": false,
+		"useRanks": false,
+		"availableForDepartments": [9999],
+		"weapons": [
+			{
+				"weapon": "WEAPON_CARBINERIFLE",
+				"ammo": 250
+			}
+		]
+	}
+	"Shotgun": {
+		"isAvailableForEveryone": true,
+		"useRanks": false,
+		"availableForDepartments": [9999],
+		"weapons": [
+			 {
+				 "weapon": "WEAPON_PUMPSHOTGUN",
+				 "ammo": 250
+			 }
+		 ]
+	}

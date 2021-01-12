@@ -51,7 +51,8 @@ namespace IntuitiveMenus
                 Common.Loadouts = new List<Loadout>() { };
                 foreach (var _Loadout in _Loadouts)
                 {
-                    bool.TryParse((string)_Loadout.Value["isAvailableForEveryone"], out bool _isAvailableForEveryone);
+                    bool _isAvailableForEveryone;
+                    if (!bool.TryParse((string)_Loadout.Value["isAvailableForEveryone"], out _isAvailableForEveryone)) _isAvailableForEveryone = true;
                     bool.TryParse((string)_Loadout.Value["useRanks"], out bool _useRanks);
 
                     List<string> _availableForRanks = new List<string>();
@@ -114,8 +115,10 @@ namespace IntuitiveMenus
 
                 foreach (var _Vehicle in _Vehicles["police"])
                 {
-                    bool.TryParse((string)_Vehicle["isAvailableForEveryone"], out bool _isAvailableForEveryone);
+                    bool _isAvailableForEveryone;
+                    if (!bool.TryParse((string)_Vehicle["isAvailableForEveryone"], out _isAvailableForEveryone)) _isAvailableForEveryone = true;
                     bool.TryParse((string)_Vehicle["useRanks"], out bool _useRanks);
+
 
                     List<string> _availableForRanks = new List<string>();
                     if (_Vehicle["availableForRanks"] != null)
@@ -139,6 +142,17 @@ namespace IntuitiveMenus
                         AvailableForRanks = _availableForRanks,
                         AvailableForDepartments = _availableForDepartments,
                     });
+
+                    if(bool.TryParse((string)_Vehicle["isSpikeStripAvailable"], out bool _hasSpikeStripAvailable) && _hasSpikeStripAvailable)
+                    {
+                        try
+                        {
+                            trunk.SpikeStripVehicles.Add(GetHashKey((string)_Vehicle["vehicle"]));
+                        }
+                        catch { }
+                    }
+
+                        
                 }
 
                 // Coordinates
@@ -286,7 +300,8 @@ namespace IntuitiveMenus
 
                 foreach (var _PedModel in _PedModels)
                 {
-                    bool.TryParse((string)_PedModel.Value["isAvailableForEveryone"], out bool _isAvailableForEveryone);
+                    bool _isAvailableForEveryone;
+                    if (!bool.TryParse((string)_PedModel.Value["isAvailableForEveryone"], out _isAvailableForEveryone)) _isAvailableForEveryone = true;
                     bool.TryParse((string)_PedModel.Value["useRanks"], out bool _useRanks);
 
                     List<string> _availableForRanks = new List<string>();

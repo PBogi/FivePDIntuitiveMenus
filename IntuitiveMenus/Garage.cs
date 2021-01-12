@@ -151,10 +151,19 @@ namespace IntuitiveMenus
 
                     foreach (Vehicle _Vehicle in Vehicles)
                     {
+                        bool _isAllowed = false;
 
-                        if (_Vehicle.IsAvailableForEveryone
-                            || ((!_Vehicle.UseRanks || _Vehicle.AvailableForRanks.Contains(playerData.Rank))
-                                && (_Vehicle.AvailableForDepartments.Count == 0 || _Vehicle.AvailableForDepartments.Contains(playerData.DepartmentID))))
+                        if (_Vehicle.IsAvailableForEveryone) _isAllowed = true;
+                        else if (_Vehicle.UseRanks)
+                        {
+                            if (_Vehicle.AvailableForRanks.Contains(playerData.Rank)) _isAllowed = true;
+                        }
+                        else if(!_Vehicle.UseRanks)
+                        {
+                            if (_Vehicle.AvailableForDepartments.Contains(playerData.DepartmentID)) _isAllowed = true;
+                        }
+
+                        if(_isAllowed)
                         {
                             MenuItem _menuButton = new MenuItem(_Vehicle.Name);
                             _menuButton.ItemData = _Vehicle.Model;
