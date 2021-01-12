@@ -475,7 +475,7 @@ namespace IntuitiveMenus
         // React on button press
         internal async Task CheckButtonPressed()
         {
-            if (Game.IsControlJustReleased(1, Control.Context))
+            if (Game.IsControlJustReleased(1, Control.Context) && !Game.PlayerPed.IsInVehicle())
             {
                 _ = trunk.OpenTrunk();
             }
