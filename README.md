@@ -20,7 +20,7 @@ This project aims to access frequently used menus in the FiveM modification Five
 Any contribution is welcome. Feel free to create a pull request.
 
 ## Installation instructions
-1. Download the latest release from [GPM](https://gtapolicemods.com/files/category/65-fivepd-modifications/)
+1. Download the latest release from [GPM](https://gtapolicemods.com/files/file/2078-intuitive-menus/)
 2. Extract the dll file into your *<FXServer>\server-data\resources\fivepd\plugins* folder
 3. Restart FivePD
  
