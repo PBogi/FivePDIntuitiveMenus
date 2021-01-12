@@ -142,6 +142,17 @@ namespace IntuitiveMenus
                         AvailableForRanks = _availableForRanks,
                         AvailableForDepartments = _availableForDepartments,
                     });
+
+                    if(bool.TryParse((string)_Vehicle["isSpikeStripAvailable"], out bool _hasSpikeStripAvailable) && _hasSpikeStripAvailable)
+                    {
+                        try
+                        {
+                            trunk.SpikeStripVehicles.Add(GetHashKey((string)_Vehicle["vehicle"]));
+                        }
+                        catch { }
+                    }
+
+                        
                 }
 
                 // Coordinates

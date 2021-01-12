@@ -56,7 +56,7 @@ namespace IntuitiveMenus
                     }
                     else
                     {
-                        _ = OpenMenu();
+                        _ = OpenMenu(vehicleHandle);
 
                         SetCurrentPedWeapon(PlayerPedId(), (uint)GetHashKey("WEAPON_UNARMED"), true);
                         SetVehicleDoorOpen(vehicleHandle, 5, false, false);
@@ -88,12 +88,26 @@ namespace IntuitiveMenus
             }
         }
 
-        internal async Task OpenMenu()
+        internal async Task OpenMenu(int vehicleHandle)
         {
             PlayerData playerData = Utilities.GetPlayerData();
 
             Menu menu = new Menu("Trunk");
             MenuController.AddMenu(menu);
+
+            MenuItem menuItem_SpikeStrips = new MenuItem("Get spike strip");
+            if (SpikeStripVehicles.Contains(GetEntityModel(vehicleHandle)) && Utilities.IsPlayerOnDuty())
+            {
+                menuItem_SpikeStrips.Enabled = true;
+                menu.AddMenuItem(menuItem_SpikeStrips);
+            }
+            else if(SpikeStripVehicles.Contains(GetEntityModel(vehicleHandle)) && !Utilities.IsPlayerOnDuty())
+            {
+                menuItem_SpikeStrips.Enabled = false;
+                menuItem_SpikeStrips.Description = "Go on duty first";
+                menu.AddMenuItem(menuItem_SpikeStrips);
+            }
+            
 
             // Check which loadouts are available for the player in the trunk and create the menu buttons for it
             foreach (Loadout _Loadout in Loadouts)
@@ -177,7 +191,13 @@ namespace IntuitiveMenus
 
             menu.OnItemSelect += (_menu, _item, _index) =>
             {
-                if (_item.Index == menuItem_RefillAmmo.Index)
+                if(_item.Index == menuItem_SpikeStrips.Index)
+                {
+                    SetControlNormal(0, 21, 2.0f);
+                    SetControlNormal(0, 38, 1.0f);
+                    menu.CloseMenu();
+                }
+                else if (_item.Index == menuItem_RefillAmmo.Index)
                 {
                     Dictionary<string, int> _itemData = _item.ItemData;
 
@@ -199,7 +219,7 @@ namespace IntuitiveMenus
                         {
                             uint _weaponHash = (uint)GetHashKey(_Weapon.Model);
 
-                            GiveWeaponToPed(PlayerPedId(), _weaponHash, _Weapon.Ammo, false, false);
+                            GiveWeaponToPed(PlayerPedId(), _weaponHash, _Weapon.Ammo, false, true);
                             SetPedAmmo(PlayerPedId(), _weaponHash, _Weapon.Ammo); // Need to call this; GiveWeaponToPed always adds ammo up
 
                             if (_Weapon.Components.Length > 0)
@@ -239,5 +259,6 @@ namespace IntuitiveMenus
         }
 
         internal List<Loadout> Loadouts = new List<Loadout>();
+        internal List<int> SpikeStripVehicles = new List<int>();
     }
 }
