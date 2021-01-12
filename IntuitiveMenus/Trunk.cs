@@ -194,7 +194,8 @@ namespace IntuitiveMenus
                 {
                     SetControlNormal(0, 21, 2.0f);
                     SetControlNormal(0, 38, 1.0f);
-                    menu.CloseMenu();
+                    _item.Text = "Spike strips added";
+                    _item.Enabled = false;
                 }
                 else if (_item.Index == menuItem_RefillAmmo.Index)
                 {
